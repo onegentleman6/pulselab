@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Онлайн-запис — BrowArt (демо-приклад)</title>
+<style>
+  :root {
+    --bg: #f6f1eb; --surface: #fffdfa; --line: #e4d9cd; --text: #2a201b; --muted: #75665c;
+    --accent: #8c4f3f; --accent-soft: #f1e2da; --busy: #e9e1d8; --ok: #3f6b4f;
+    --r: 10px; --s1: .25rem; --s2: .5rem; --s3: .75rem; --s4: 1rem; --s5: 1.5rem; --s6: 2rem;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.45 -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  .wrap { max-width: 34rem; margin: 0 auto; padding: var(--s4); }
+  .demo { background: var(--accent-soft); border: 1px solid var(--line); border-radius: var(--r); padding: var(--s3); font-size: .875rem; color: var(--muted); }
+  header { text-align: center; padding: var(--s5) 0 var(--s4); }
+  header h1 { font: 600 1.75rem/1.2 Georgia, "Times New Roman", serif; margin: 0; letter-spacing: .02em; }
+  header p { margin: var(--s1) 0 0; color: var(--muted); font-size: .9375rem; }
+  .tabs { display: flex; gap: var(--s2); margin: var(--s4) 0; }
+  .tabs button { flex: 1; }
+  h2 { font: 600 1.125rem/1.3 Georgia, serif; margin: var(--s5) 0 var(--s3); }
+  .steps { display: flex; gap: var(--s2); font-size: .8125rem; color: var(--muted); margin-top: var(--s2); }
+  .steps span[aria-current="step"] { color: var(--accent); font-weight: 600; }
+  button { font: inherit; color: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: var(--s3) var(--s4); }
+  button:hover { border-color: var(--accent); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .primary { background: var(--accent); border-color: var(--accent); color: #fff; width: 100%; font-weight: 600; }
+  .primary:hover { filter: brightness(1.08); }
+  .primary:disabled { opacity: .45; cursor: not-allowed; }
+  .link { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; }
+  .list { display: grid; gap: var(--s2); }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: var(--s3); text-align: left; width: 100%; }
+  .row small { color: var(--muted); white-space: nowrap; }
+  .days { display: flex; gap: var(--s2); overflow-x: auto; padding-bottom: var(--s2); }
+  .days button { min-width: 4.25rem; text-align: center; padding: var(--s2); line-height: 1.25; }
+  .days small { display: block; color: var(--muted); font-size: .75rem; }
+  .slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s2); }
+  .slots button { padding: var(--s2) 0; }
+  .note { color: var(--muted); font-size: .875rem; margin: var(--s2) 0 0; }
+  .empty { padding: var(--s4); border: 1px dashed var(--line); border-radius: var(--r); color: var(--muted); text-align: center; }
+  label { display: block; font-size: .875rem; color: var(--muted); margin: var(--s3) 0 var(--s1); }
+  input { width: 100%; font: inherit; padding: var(--s3); border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+  .summary { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: var(--s4); margin: var(--s4) 0; }
+  .summary dl { display: grid; grid-template-columns: auto 1fr; gap: var(--s1) var(--s4); margin: 0; }
+  .summary dt { color: var(--muted); }
+  .summary dd { margin: 0; font-weight: 600; }
+  .done { text-align: center; }
+  .done .mark { font: 600 2rem Georgia, serif; color: var(--ok); }
+  .after { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: var(--s4); }
+  .after li { margin: var(--s1) 0; }
+  /* Розклад майстрів */
+  .sched { display: grid; grid-template-columns: 4.5rem 1fr; gap: var(--s2) var(--s3); align-items: center; }
+  .sched .who { font-size: .8125rem; line-height: 1.2; }
+  .sched .who small { display: block; color: var(--muted); font-size: .6875rem; }
+  .bar { position: relative; height: 2.25rem; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .blk { position: absolute; top: 0; bottom: 0; background: var(--busy); border-right: 1px solid var(--surface); font-size: .625rem; color: var(--muted); padding: 2px 3px; overflow: hidden; white-space: nowrap; }
+  .blk.new { background: var(--accent); color: #fff; font-weight: 600; }
+  .hours { display: flex; justify-content: space-between; font-size: .6875rem; color: var(--muted); grid-column: 2; }
+  .legend { display: flex; gap: var(--s4); font-size: .8125rem; color: var(--muted); margin-top: var(--s3); }
+  .legend i { display: inline-block; width: .75rem; height: .75rem; border-radius: 2px; vertical-align: -1px; margin-right: var(--s1); }
+  footer { text-align: center; color: var(--muted); font-size: .75rem; padding: var(--s6) 0 var(--s4); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="demo" role="note"><strong>Демо-приклад для BrowArt.</strong> Процедури взято з вашого профілю, тривалість і розклад майстрів — тестові. Справжній запис не створюється, нікому нічого не надсилається.</p>
+
+  <header>
+    <h1>BrowArt</h1>
+    <p>Перманентний макіяж і догляд · Тернопіль, вул. Замкова, 5</p>
+  </header>
+
+  <div class="tabs" role="group" aria-label="Режим перегляду">
+    <button type="button" id="tabClient" aria-pressed="true">Як бачить клієнтка</button>
+    <button type="button" id="tabStudio" aria-pressed="false">Розклад майстрів</button>
+  </div>
+
+  <main id="client">
+    <nav class="steps" aria-label="Кроки запису"><span data-s="1">1. Процедура</span>·<span data-s="2">2. Майстер</span>·<span data-s="3">3. Час</span>·<span data-s="4">4. Контакти</span></nav>
+
+    <section id="s1" aria-labelledby="h1s"><h2 id="h1s">Оберіть процедуру</h2><div class="list" id="procList"></div></section>
+
+    <section id="s2" hidden aria-labelledby="h2s">
+      <h2 id="h2s">Оберіть майстра</h2>
+      <p class="note" id="s2note"></p>
+      <div class="list" id="masterList"></div>
+      <p><button type="button" class="link" data-back="1">← інша процедура</button></p>
+    </section>
+
+    <section id="s3" hidden aria-labelledby="h3s">
+      <h2 id="h3s">Оберіть день і час</h2>
+      <div class="days" id="days" role="group" aria-label="День"></div>
+      <div id="slots" class="slots" role="group" aria-label="Вільний час"></div>
+      <p class="note" id="s3note"></p>
+      <p><button type="button" class="link" data-back="2">← інший майстер</button></p>
+    </section>
+
+    <section id="s4" hidden aria-labelledby="h4s">
+      <h2 id="h4s">Ваші контакти</h2>
+      <div class="summary" id="sum"></div>
+      <form id="form" novalidate>
+        <label for="nm">Ім'я</label><input id="nm" autocomplete="name" required>
+        <label for="ph">Телефон</label><input id="ph" type="tel" autocomplete="tel" inputmode="tel" placeholder="+380" required>
+        <p class="note" id="err" role="alert"></p>
+        <button class="primary" type="submit">Записатися</button>
+      </form>
+      <p><button type="button" class="link" data-back="3">← інший час</button></p>
+    </section>
+
+    <section id="s5" hidden class="done" aria-live="polite">
+      <p class="mark" aria-hidden="true">✓</p>
+      <h2>Ви записані</h2>
+      <div class="summary" id="sum2"></div>
+      <div class="after">
+        <strong>Що відбувається далі (у справжній системі):</strong>
+        <ul>
+          <li>майстру одразу приходить сповіщення в Telegram;</li>
+          <li>запис з'являється в розкладі — цей час більше ніхто не займе;</li>
+          <li>клієнтці приходить нагадування за добу й за 2 години;</li>
+          <li>перенести чи скасувати можна за посиланням з нагадування.</li>
+        </ul>
+        <p class="note">Подивіться вкладку «Розклад майстрів» угорі — ваш запис уже там.</p>
+      </div>
+      <p><button type="button" class="primary" id="again">Записати ще когось</button></p>
+    </section>
+  </main>
+
+  <section id="studio" hidden aria-labelledby="hs">
+    <h2 id="hs">Розклад на <span id="sDay"></span></h2>
+    <div class="days" id="sDays" role="group" aria-label="День"></div>
+    <div class="sched" id="sched"></div>
+    <div class="legend"><span><i style="background:var(--busy)"></i>зайнято</span><span><i style="background:var(--accent)"></i>новий онлайн-запис</span></div>
+    <p class="note">Так власниця бачить завантаження всіх майстрів з телефона. Кожна процедура займає рівно свою тривалість, тому вільні віконця рахуються автоматично.</p>
+  </section>
+
+  <footer>Демо-приклад онлайн-запису · дані тестові</footer>
+</div>
+
+<script>
+(() => {
+  const OPEN = 9 * 60, CLOSE = 19 * 60, STEP = 30;
+  const P = [
+    ['pudr', 'Пудрові брови', 150], ['volos', 'Волоскові брови', 180], ['guby', 'Перманент губ', 150],
+    ['strilky', 'Стрілки', 90], ['korek', 'Корекція перманенту', 90], ['tryho', 'Трихопігментація', 120],
+    ['areoly', 'Ареоли', 120], ['laser', 'Лазерне видалення перманенту', 30], ['micro', 'Мікронідлінг', 60],
+    ['rf', 'RF-ліфтинг', 45], ['endo', 'Апаратний масаж (ендосфера)', 60]
+  ].map(([id, name, min]) => ({ id, name, min }));
+  const M = [
+    { id: 'm1', name: 'Майстер 1', spec: 'брови, губи, стрілки', can: ['pudr', 'volos', 'guby', 'strilky', 'korek', 'areoly', 'tryho'] },
+    { id: 'm2', name: 'Майстер 2', spec: 'брови, губи', can: ['pudr', 'guby', 'strilky', 'korek'] },
+    { id: 'm3', name: 'Майстер 3', spec: 'брови', can: ['pudr', 'volos', 'korek'] },
+    { id: 'm4', name: 'Майстер 4', spec: 'лазер, догляд', can: ['laser', 'micro', 'rf'] },
+    { id: 'm5', name: 'Майстер 5', spec: 'апаратні процедури', can: ['endo', 'rf', 'micro'] }
+  ];
+  const ANY = { id: 'any', name: 'Будь-який вільний майстер', spec: 'покажемо всі вільні віконця' };
+  const $ = s => document.querySelector(s);
+  const fmtT = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+  const dur = m => (m >= 60 ? Math.floor(m / 60) + ' год' : '') + (m % 60 ? ' ' + (m % 60) + ' хв' : '');
+  const plural = n => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? 'віконце' : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 'віконця' : 'віконець'; };
+  const WD = ['нд', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+  const days = []; for (let i = 0, d = new Date(); days.length < 7; i++) { const x = new Date(d); x.setDate(d.getDate() + i); if (x.getDay() !== 0) days.push(x); }
+  const dkey = d => d.toISOString().slice(0, 10);
+  const dlabel = d => WD[d.getDay()] + ', ' + d.getDate() + '.' + String(d.getMonth() + 1).padStart(2, '0');
+
+  // Тестові записи: стабільні для кожного дня й майстра
+  let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  const busy = {};
+  days.forEach(d => M.forEach(m => {
+    const list = []; let t = OPEN + Math.floor(rnd() * 3) * STEP;
+    while (t < CLOSE - 60) {
+      const pid = m.can[Math.floor(rnd() * m.can.length)], p = P.find(x => x.id === pid);
+      if (rnd() < 0.55 && t + p.min <= CLOSE) { list.push({ s: t, e: t + p.min, p: p.name }); t += p.min; }
+      t += STEP * (1 + Math.floor(rnd() * 3));
+    }
+    busy[dkey(d) + m.id] = list;
+  }));
+  const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
+  const freeStarts = (d, m, p) => {
+    const b = busy[dkey(d) + m.id], out = [];
+    for (let t = OPEN; t + p.min <= CLOSE; t += STEP) {
+      if (dkey(d) === dkey(now) && t <= nowMin + 60) continue;
+      if (!b.some(x => t < x.e && t + p.min > x.s)) out.push(t);
+    }
+    return out;
+  };
+
+  const st = { p: null, m: null, d: days[0], t: null, who: null };
+  let first = true;
+  const show = n => {
+    for (let i = 1; i <= 5; i++) $('#s' + i).hidden = i !== n;
+    document.querySelectorAll('.steps span').forEach(s => { if (+s.dataset.s === n) s.setAttribute('aria-current', 'step'); else s.removeAttribute('aria-current'); });
+    const h = $('#s' + n + ' h2'); if (h && !first) { h.tabIndex = -1; h.focus(); }
+  };
+  const btn = (html, on, pressed) => { const b = document.createElement('button'); b.type = 'button'; b.innerHTML = html; b.onclick = on; if (pressed !== undefined) b.setAttribute('aria-pressed', pressed); return b; };
+
+  P.forEach(p => $('#procList').append(btn(`<span class="row"><span>${p.name}</span><small>${dur(p.min)}</small></span>`, () => { st.p = p; renderMasters(); show(2); })));
+
+  function renderMasters() {
+    const ms = M.filter(m => m.can.includes(st.p.id));
+    $('#s2note').textContent = `«${st.p.name}» (${dur(st.p.min)}) роблять ${ms.length} з 5 майстрів — показуємо лише їх.`;
+    const box = $('#masterList'); box.innerHTML = '';
+    [...(ms.length > 1 ? [ANY] : []), ...ms].forEach(m => box.append(btn(`<span class="row"><span>${m.name}</span><small>${m.spec}</small></span>`, () => { st.m = m; st.d = days.find(d => startsFor(d).length) || days[0]; renderDays(); show(3); })));
+  }
+  function startsFor(d) {
+    if (st.m.id !== 'any') return freeStarts(d, st.m, st.p).map(t => ({ t, m: st.m }));
+    const map = new Map();
+    M.filter(m => m.can.includes(st.p.id)).forEach(m => freeStarts(d, m, st.p).forEach(t => { if (!map.has(t)) map.set(t, m); }));
+    return [...map].sort((a, b) => a[0] - b[0]).map(([t, m]) => ({ t, m }));
+  }
+  function renderDays() {
+    const box = $('#days'); box.innerHTML = '';
+    days.forEach(d => { const n = startsFor(d).length; box.append(btn(`${dlabel(d).split(', ')[0]}<small>${dlabel(d).split(', ')[1]}</small><small>${n ? n + ' ' + plural(n) : 'усе зайнято'}</small>`, () => { st.d = d; renderDays(); }, dkey(d) === dkey(st.d))); });
+    const sl = $('#slots'); sl.innerHTML = '';
+    const list = startsFor(st.d);
+    if (!list.length) { sl.innerHTML = '<p class="empty" style="grid-column:1/-1">На цей день вільних віконець немає — оберіть інший день.</p>'; }
+    list.forEach(x => sl.append(btn(fmtT(x.t), () => { st.t = x.t; st.who = x.m; renderSummary('#sum'); show(4); })));
+    $('#s3note').textContent = `Показано лише час, коли ${st.m.id === 'any' ? 'хтось із майстрів' : 'майстер'} вільний усі ${dur(st.p.min).trim()} процедури.`;
+  }
+  function renderSummary(sel) {
+    $(sel).innerHTML = `<dl><dt>Процедура</dt><dd>${st.p.name}</dd><dt>Майстер</dt><dd>${st.who.name}</dd><dt>Коли</dt><dd>${dlabel(st.d)}, ${fmtT(st.t)}–${fmtT(st.t + st.p.min)}</dd></dl>`;
+  }
+  document.querySelectorAll('[data-back]').forEach(b => b.onclick = () => show(+b.dataset.back));
+
+  let mine = [];
+  $('#form').onsubmit = e => {
+    e.preventDefault();
+    const nm = $('#nm').value.trim(), ph = $('#ph').value.replace(/[^\d+]/g, '');
+    if (!nm) { $('#err').textContent = 'Вкажіть, будь ласка, ім\'я.'; $('#nm').focus(); return; }
+    if (ph.replace(/\D/g, '').length < 10) { $('#err').textContent = 'Перевірте номер телефону — у ньому має бути щонайменше 10 цифр.'; $('#ph').focus(); return; }
+    $('#err').textContent = '';
+    const rec = { s: st.t, e: st.t + st.p.min, p: st.p.name + ' · ' + nm, isNew: true };
+    busy[dkey(st.d) + st.who.id].push(rec); mine.push(rec);
+    sDay = st.d; renderSummary('#sum2'); show(5);
+  };
+  $('#again').onclick = () => { $('#form').reset(); show(1); };
+
+  // Розклад майстрів
+  let sDay = days[0];
+  function renderStudio() {
+    $('#sDay').textContent = dlabel(sDay);
+    const dbox = $('#sDays'); dbox.innerHTML = '';
+    days.forEach(d => dbox.append(btn(`${dlabel(d).split(', ')[0]}<small>${dlabel(d).split(', ')[1]}</small>`, () => { sDay = d; renderStudio(); }, dkey(d) === dkey(sDay))));
+    const box = $('#sched'); box.innerHTML = '';
+    const span = CLOSE - OPEN;
+    M.forEach(m => {
+      const who = document.createElement('div'); who.className = 'who'; who.innerHTML = `${m.name}<small>${m.spec}</small>`;
+      const bar = document.createElement('div'); bar.className = 'bar';
+      const items = busy[dkey(sDay) + m.id];
+      bar.setAttribute('role', 'img');
+      bar.setAttribute('aria-label', `${m.name}: ${items.length ? items.map(x => fmtT(x.s) + '–' + fmtT(x.e) + ' ' + x.p).join('; ') : 'вільний увесь день'}`);
+      items.forEach(x => { const b = document.createElement('div'); b.className = 'blk' + (x.isNew ? ' new' : ''); b.style.left = ((x.s - OPEN) / span * 100) + '%'; b.style.width = ((x.e - x.s) / span * 100) + '%'; if ((x.e - x.s) / span >= 0.12) b.textContent = fmtT(x.s); b.title = `${fmtT(x.s)}–${fmtT(x.e)} ${x.p}`; bar.append(b); });
+      box.append(who, bar);
+    });
+    const hrs = document.createElement('div'); hrs.className = 'hours'; ['9:00', '11:00', '13:00', '15:00', '17:00', '19:00'].forEach(h => { const s = document.createElement('span'); s.textContent = h; hrs.append(s); }); box.append(hrs);
+  }
+  const tab = c => { $('#client').hidden = !c; $('#studio').hidden = c; $('#tabClient').setAttribute('aria-pressed', c); $('#tabStudio').setAttribute('aria-pressed', !c); if (!c) renderStudio(); };
+  $('#tabClient').onclick = () => tab(true); $('#tabStudio').onclick = () => tab(false);
+  show(1); first = false;
+})();
+</script>
+</body>
+</html>
