@@ -62,16 +62,19 @@
   .legend { display: flex; gap: var(--s4); font-size: .8125rem; color: var(--muted); margin-top: var(--s3); }
   .legend i { display: inline-block; width: .75rem; height: .75rem; border-radius: 2px; vertical-align: -1px; margin-right: var(--s1); }
   footer { text-align: center; color: var(--muted); font-size: .75rem; padding: var(--s6) 0 var(--s4); }
+  .cats { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s3); }
+  .cats button { padding: var(--s2) var(--s3); font-size: .875rem; }
+  .row small { text-align: right; line-height: 1.35; }
   [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <p class="demo" role="note"><strong>Демо-приклад для BrowArt.</strong> Процедури взято з вашого профілю, тривалість і розклад майстрів — тестові. Справжній запис не створюється, нікому нічого не надсилається.</p>
+  <p class="demo" role="note"><strong>Демо-приклад для BrowArt.</strong> Процедури й ціни — з вашого прайсу в Instagram; розподіл процедур між майстрами — приклад, а розклад — тестовий. Справжній запис не створюється, нікому нічого не надсилається.</p>
 
   <header>
     <h1>BrowArt</h1>
-    <p>Перманентний макіяж і догляд · Тернопіль, вул. Замкова, 5</p>
+    <p>Перманент, косметологія, лазер і апаратні процедури · Тернопіль, вул. Замкова, 5</p>
   </header>
 
   <div class="tabs" role="group" aria-label="Режим перегляду">
@@ -82,7 +85,7 @@
   <main id="client">
     <nav class="steps" aria-label="Кроки запису"><span data-s="1">1. Процедура</span>·<span data-s="2">2. Майстер</span>·<span data-s="3">3. Час</span>·<span data-s="4">4. Контакти</span></nav>
 
-    <section id="s1" aria-labelledby="h1s"><h2 id="h1s">Оберіть процедуру</h2><div class="list" id="procList"></div></section>
+    <section id="s1" aria-labelledby="h1s"><h2 id="h1s">Оберіть процедуру</h2><div class="cats" id="cats" role="group" aria-label="Напрям"></div><div class="list" id="procList"></div><p class="note">Ціни — з вашого прайсу. Тривалість частково орієнтовна.</p></section>
 
     <section id="s2" hidden aria-labelledby="h2s">
       <h2 id="h2s">Оберіть майстра</h2>
@@ -143,18 +146,50 @@
 <script>
 (() => {
   const OPEN = 9 * 60, CLOSE = 19 * 60, STEP = 30;
+  // Ціни — з прайсу BrowArt в Instagram (хайлайт «ПРАЙС», 27.11). Тривалість: «їхня» — де вказано в прайсі/на сайті, решта орієнтовна.
+  const G = ['Перманент', 'Брови й вії', 'Косметологія', 'Лазерна епіляція', 'Апаратні'];
   const P = [
-    ['pudr', 'Пудрові брови', 150], ['volos', 'Волоскові брови', 180], ['guby', 'Перманент губ', 150],
-    ['strilky', 'Стрілки', 90], ['korek', 'Корекція перманенту', 90], ['tryho', 'Трихопігментація', 120],
-    ['areoly', 'Ареоли', 120], ['laser', 'Лазерне видалення перманенту', 30], ['micro', 'Мікронідлінг', 60],
-    ['rf', 'RF-ліфтинг', 45], ['endo', 'Апаратний масаж (ендосфера)', 60]
-  ].map(([id, name, min]) => ({ id, name, min }));
+    [0, 'pudr', 'ПМ брів, пудрова техніка', 120, '3 500 грн'],
+    [0, 'volos', 'ПМ брів, волоскова (мікроблейдинг)', 120, '3 700 грн'],
+    [0, 'komb', 'ПМ брів, комбінована техніка', 150, '4 200 грн'],
+    [0, 'guby', 'ПМ губ, акварель', 120, '3 700 грн'],
+    [0, 'mizh', 'ПМ повік, міжвійкова', 90, '3 500 грн'],
+    [0, 'strilka', 'ПМ, класична стрілка', 90, '3 700 грн'],
+    [0, 'roztush', 'ПМ, стрілка з розтушуванням', 120, '3 900 грн'],
+    [0, 'korek', 'Корекція перманенту', 90, 'від 1 500 грн'],
+    [0, 'areola', 'Камуфляж ареол (1 / 2)', 120, '4 000 / 6 000 грн'],
+    [0, 'tryho', 'Трихопігментування', 120, 'від 2 000 грн'],
+    [0, 'remuv', 'Видалення ремувером', 60, '1 500 грн'],
+    [1, 'model', 'Моделювання брів (пінцет, трідінг)', 30, '300 грн'],
+    [1, 'farb', 'Корекція і фарбування брів', 45, '400 грн'],
+    [1, 'lamb', 'Ламінування брів', 60, '800 грн'],
+    [1, 'lamv', 'Ламінування вій', 60, '800 грн'],
+    [2, 'uz', 'УЗ чистка обличчя', 60, '650 грн'],
+    [2, 'kombch', 'Комбінована чистка обличчя', 90, '750 грн'],
+    [2, 'karb', 'Карбокситерапія обличчя', 45, '650 грн'],
+    [2, 'pil', 'Поверхневий пілінг обличчя', 45, '700 грн'],
+    [2, 'sudyny', 'Лазерне видалення судин, обличчя', 30, '1 100 грн'],
+    [3, 'pakh', 'Лазерна епіляція: пахви', 20, '400 грн'],
+    [3, 'bikini', 'Лазерна епіляція: глибоке бікіні', 40, '850 грн'],
+    [3, 'nogy', 'Лазерна епіляція: ноги повністю', 60, '1 200 грн'],
+    [3, 'kompl', 'Комплекс: пахви + ноги + глибоке бікіні', 90, '1 500 грн'],
+    [3, 'karbpil', 'Карбоновий пілінг', 45, '800 грн'],
+    [3, 'lazpm', 'Видалення ПМ брів/губ лазером', 30, '1 000 грн'],
+    [3, 'elektro', 'Електроепіляція, до 30 хв', 30, '540 грн'],
+    [4, 'endo', 'Ендосфера, тіло', 60, '900 грн'],
+    [4, 'endoo', 'Ендосфера, обличчя', 45, '800 грн'],
+    [4, 'tilo', 'Тіло + обличчя (ендосфера або вакуум)', 120, '1 450 грн'],
+    [4, 'kompa', 'Ендосфера (вакуум) + кавітація + RF', 90, '1 100 грн'],
+    [4, 'kav', 'Кавітація', 60, '900 грн'],
+    [4, 'rf', 'RF-ліфтинг, обличчя повністю', 60, '4 600 грн']
+  ].map(([g, id, name, min, price]) => ({ g, id, name, min, price }));
+  const ids = g => P.filter(p => p.g === g).map(p => p.id);
   const M = [
-    { id: 'm1', name: 'Майстер 1', spec: 'брови, губи, стрілки', can: ['pudr', 'volos', 'guby', 'strilky', 'korek', 'areoly', 'tryho'] },
-    { id: 'm2', name: 'Майстер 2', spec: 'брови, губи', can: ['pudr', 'guby', 'strilky', 'korek'] },
-    { id: 'm3', name: 'Майстер 3', spec: 'брови', can: ['pudr', 'volos', 'korek'] },
-    { id: 'm4', name: 'Майстер 4', spec: 'лазер, догляд', can: ['laser', 'micro', 'rf'] },
-    { id: 'm5', name: 'Майстер 5', spec: 'апаратні процедури', can: ['endo', 'rf', 'micro'] }
+    { id: 'm1', name: 'Наталя', spec: 'перманент, ареоли, трихопігментування', can: [...ids(0)] },
+    { id: 'm2', name: 'Олена', spec: 'перманент брів і губ, брови й вії', can: ['pudr', 'volos', 'komb', 'guby', 'korek', ...ids(1)] },
+    { id: 'm3', name: 'Неля', spec: 'косметолог', can: [...ids(2)] },
+    { id: 'm4', name: 'Майстер лазерної епіляції', spec: 'лазер, електроепіляція', can: [...ids(3)] },
+    { id: 'm5', name: 'Майстер апаратних процедур', spec: 'ендосфера, кавітація, RF', can: [...ids(4)] }
   ];
   const ANY = { id: 'any', name: 'Будь-який вільний майстер', spec: 'покажемо всі вільні віконця' };
   const $ = s => document.querySelector(s);
@@ -197,7 +232,14 @@
   };
   const btn = (html, on, pressed) => { const b = document.createElement('button'); b.type = 'button'; b.innerHTML = html; b.onclick = on; if (pressed !== undefined) b.setAttribute('aria-pressed', pressed); return b; };
 
-  P.forEach(p => $('#procList').append(btn(`<span class="row"><span>${p.name}</span><small>${dur(p.min)}</small></span>`, () => { st.p = p; renderMasters(); show(2); })));
+  let cat = 0;
+  function renderProcs() {
+    const cb = $('#cats'); cb.innerHTML = '';
+    G.forEach((g, i) => cb.append(btn(g, () => { cat = i; renderProcs(); }, i === cat)));
+    const box = $('#procList'); box.innerHTML = '';
+    P.filter(p => p.g === cat).forEach(p => box.append(btn(`<span class="row"><span>${p.name}</span><small>${p.price}<br>${dur(p.min).trim()}</small></span>`, () => { st.p = p; renderMasters(); show(2); })));
+  }
+  renderProcs();
 
   function renderMasters() {
     const ms = M.filter(m => m.can.includes(st.p.id));
